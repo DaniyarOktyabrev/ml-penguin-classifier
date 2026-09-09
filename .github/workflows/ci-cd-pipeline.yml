@@ -1,0 +1,66 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]           # при пуше в main
+  pull_request:
+    branches: [ main ]           # при PR в main
+  workflow_dispatch:             # ручной запуск
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies (for training if needed)
+        run: |
+          pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+            fastapi uvicorn pandas numpy scikit-learn python-dotenv
+
+      - name: Train model (optional – если модель не хранится в репо)
+        run: python src/train.py
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/penguin-classifier:latest
+
+  deploy-and-test:
+    runs-on: ubuntu-latest
+    needs: build-and-push          # запускается только после успешной сборки
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pull and run container
+        run: |
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/penguin-classifier:latest
+          docker run -d -p 8000:8000 --name api ${{ secrets.DOCKERHUB_USERNAME }}/penguin-classifier:latest
+          sleep 10   # ждём запуск сервера
+
+      - name: Install pytest and requests
+        run: pip install pytest requests
+
+      - name: Run functional tests
+        run: pytest tests/test_api.py -v
+        env:
+          API_URL: "http://localhost:8000"
+
+      - name: Stop and remove container (always)
+        if: always()
+        run: docker stop api && docker rm api
