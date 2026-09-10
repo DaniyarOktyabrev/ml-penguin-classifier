@@ -1,3 +1,4 @@
+project: "ml-penguin-classifier"
 docker_signature: "необязательно"
 last_5_commits:
   - "aa5d91f57a7062cc666173793fa0ca7cb55efdc2"
