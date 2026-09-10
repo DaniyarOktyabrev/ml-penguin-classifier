@@ -5,7 +5,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir \
     --trusted-host pypi.org --trusted-host files.pythonhosted.org \
     fastapi uvicorn pandas numpy scikit-learn \
-    python-dotenv sqlalchemy psycopg2-binary hvac
+    python-dotenv sqlalchemy psycopg2-binary hvac aiokafka
 
 COPY . .
 

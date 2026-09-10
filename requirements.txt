@@ -8,4 +8,5 @@ pytest
 requests
 sqlalchemy
 psycopg2-binary
-hvac 
+hvac
+aiokafka
