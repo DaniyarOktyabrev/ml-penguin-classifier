@@ -1,4 +1,21 @@
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: penguin-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: .
@@ -7,12 +24,13 @@ services:
     container_name: penguin-classifier-api
     ports:
       - "8000:8000"
-    volumes:
-      # Пробрасываем папку с моделью и данными (опционально, для разработки)
-      - ./models:/app/models:ro
-      - ./data:/app/data:ro
+    env_file:
+      - .env
     environment:
       - PYTHONUNBUFFERED=1
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
@@ -20,3 +38,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+
+volumes:
+  postgres_data:

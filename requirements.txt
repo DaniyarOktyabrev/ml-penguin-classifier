@@ -6,3 +6,5 @@ scikit-learn
 python-dotenv
 pytest
 requests
+sqlalchemy
+psycopg2-binary

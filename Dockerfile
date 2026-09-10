@@ -2,8 +2,8 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Устанавливаем минимальный набор пакетов
-RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org fastapi uvicorn pandas numpy scikit-learn python-dotenv
+RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+    fastapi uvicorn pandas numpy scikit-learn python-dotenv sqlalchemy psycopg2-binary
 
 COPY . .
 
