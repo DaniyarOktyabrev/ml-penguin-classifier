@@ -1,8 +1,8 @@
 docker_signature: "необязательно"
 last_5_commits:
-  - "хэш_1"
-  - "хэш_2"
-  - "хэш_3"
-  - "хэш_4"
-  - "хэш_5"
+  - "aa5d91f57a7062cc666173793fa0ca7cb55efdc2"
+  - "287efe955e78b9f40792ad2e854f12f433b6323d"
+  - "dc30f63fca99186b8dc72a96d9344487e38e3f5e"
+  - "4d77aa3a0cbb6e32042f654c1a599bea5b2a1373"
+  - "f2c4c99912a7335ce29cc7db315e86157259bb31"
 test_coverage: "~80%"
