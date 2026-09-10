@@ -39,3 +39,35 @@ def get_database_url(retries: int = 15, delay: int = 3) -> str:
             time.sleep(delay)
 
     raise RuntimeError(f"Could not retrieve secrets from Vault: {last_error}")
+def get_kafka_config(retries: int = 15, delay: int = 3) -> dict:
+    """Получает Kafka-конфигурацию из Vault."""
+    if not VAULT_TOKEN:
+        raise RuntimeError("VAULT_TOKEN is not set")
+
+    client = hvac.Client(url=VAULT_ADDR, token=VAULT_TOKEN)
+    last_error = None
+
+    for attempt in range(1, retries + 1):
+        try:
+            if not client.is_authenticated():
+                raise RuntimeError("Vault authentication failed")
+
+            response = client.secrets.kv.v2.read_secret_version(
+                path="kafka",
+                mount_point="secret",
+            )
+            secret = response["data"]["data"]
+
+            config = {
+                "bootstrap_servers": secret["bootstrap_servers"],
+                "topic": secret["topic"],
+            }
+            print(f"[Vault] Retrieved Kafka config: {config}")
+            return config
+
+        except Exception as e:
+            last_error = e
+            print(f"[Vault] Kafka config attempt {attempt}/{retries} failed: {e}")
+            time.sleep(delay)
+
+    raise RuntimeError(f"Could not retrieve Kafka config from Vault: {last_error}")

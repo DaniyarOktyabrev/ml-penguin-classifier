@@ -20,5 +20,11 @@ vault kv put secret/db \
   password="${POSTGRES_PASSWORD}" \
   dbname="${POSTGRES_DB}"
 
+echo "Writing Kafka secrets to Vault..."
+vault kv put secret/kafka \
+  bootstrap_servers="${KAFKA_BOOTSTRAP_SERVERS}" \
+  topic="${KAFKA_TOPIC}"
+
 echo "Secrets written to Vault successfully."
 vault kv get secret/db
+vault kv get secret/kafka
