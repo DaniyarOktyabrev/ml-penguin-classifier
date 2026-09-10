@@ -1,7 +1,14 @@
-from fastapi.testclient import TestClient
-from app.main import app
+import os
+import requests
 
-client = TestClient(app)
+API_URL = os.getenv("API_URL", "http://localhost:8000")
+
+
+def test_health():
+    response = requests.get(f"{API_URL}/health", timeout=10)
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
 
 def test_predict_valid():
     payload = {
@@ -12,10 +19,14 @@ def test_predict_valid():
         "body_mass_g": 3750.0,
         "sex": "MALE"
     }
-    response = client.post("/predict", json=payload)
+    response = requests.post(f"{API_URL}/predict", json=payload, timeout=10)
     assert response.status_code == 200
-    assert "species" in response.json()
+    data = response.json()
+    assert "species" in data
+    assert data["species"] in ["Adelie", "Gentoo", "Chinstrap"]
 
-def test_health():
-    response = client.get("/health")
-    assert response.status_code == 200
+
+def test_predict_invalid():
+    payload = {"island": "Torgersen"}
+    response = requests.post(f"{API_URL}/predict", json=payload, timeout=10)
+    assert response.status_code == 422
