@@ -57,7 +57,9 @@ jobs:
 
       - name: Verify Vault has secrets
         run: |
-          docker exec -e VAULT_TOKEN=${{ secrets.VAULT_DEV_ROOT_TOKEN_ID }} \
+          docker exec \
+            -e VAULT_ADDR=http://127.0.0.1:8200 \
+            -e VAULT_TOKEN=${{ secrets.VAULT_DEV_ROOT_TOKEN_ID }} \
             penguin-vault vault kv get secret/db
 
       - name: Install pytest and requests
