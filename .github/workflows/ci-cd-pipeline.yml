@@ -2,10 +2,10 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]           # при пуше в main
+    branches: [ main ]
   pull_request:
-    branches: [ main ]           # при PR в main
-  workflow_dispatch:             # ручной запуск
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -19,13 +19,10 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install dependencies (for training if needed)
+      - name: Install dependencies (для проверки проекта)
         run: |
           pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org \
             fastapi uvicorn pandas numpy scikit-learn python-dotenv
-
-      - name: Train model (optional – если модель не хранится в репо)
-        run: python src/train.py
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -42,7 +39,7 @@ jobs:
 
   deploy-and-test:
     runs-on: ubuntu-latest
-    needs: build-and-push          # запускается только после успешной сборки
+    needs: build-and-push
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -51,7 +48,18 @@ jobs:
         run: |
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/penguin-classifier:latest
           docker run -d -p 8000:8000 --name api ${{ secrets.DOCKERHUB_USERNAME }}/penguin-classifier:latest
-          sleep 10   # ждём запуск сервера
+          sleep 20
+
+      - name: Wait for API to be ready
+        run: |
+          for i in {1..15}; do
+            if curl -s http://localhost:8000/health > /dev/null; then
+              echo "API is up"
+              break
+            fi
+            echo "Waiting for API... ($i)"
+            sleep 2
+          done
 
       - name: Install pytest and requests
         run: pip install pytest requests
