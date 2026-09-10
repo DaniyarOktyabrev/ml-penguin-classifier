@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pandas
+numpy
+scikit-learn
+pytest
+python-dotenv
+dvc
+httpx
+python-multipart==0.0.6
