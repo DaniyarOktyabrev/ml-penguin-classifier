@@ -1,33 +1,38 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from app.model import Predictor
 from app.schemas import PenguinFeatures, PredictionResponse
+from app.database import init_db, save_prediction, get_recent_predictions
 
-# Создаём экземпляр приложения – ОБЯЗАТЕЛЬНО с именем app
-app = FastAPI(title="Penguin Classifier API", version="1.0")
 
-# Инициализируем предсказатель (загружает модель при старте)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Инициализация БД при старте."""
+    init_db()
+    yield
+
+
+app = FastAPI(title="Penguin Classifier API", version="2.0", lifespan=lifespan)
 predictor = Predictor()
+
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(features: PenguinFeatures):
-    """
-    Эндпоинт для предсказания вида пингвина.
-    Принимает JSON с признаками, возвращает предсказанный вид.
-    """
     try:
-        # Преобразуем Pydantic-модель в dict
         input_data = features.model_dump()
         species = predictor.predict(input_data)
+        save_prediction(input_data, species)
         return PredictionResponse(species=species)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @app.get("/health")
 async def health():
-    """Проверка работоспособности сервиса."""
     return {"status": "ok"}
 
-# Для локального запуска (необязательно)
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+@app.get("/predictions")
+async def predictions():
+    """Возвращает последние 50 предсказаний из БД."""
+    return get_recent_predictions(50)
