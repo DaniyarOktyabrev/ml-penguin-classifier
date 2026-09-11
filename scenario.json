@@ -1,0 +1,75 @@
+{
+  "description": "Сценарии функционального тестирования API сервиса penguin-classifier",
+  "base_url": "http://localhost:8000",
+  "tests": [
+    {
+      "name": "Health check",
+      "method": "GET",
+      "endpoint": "/health",
+      "expected_status": 200,
+      "expected_response": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "Predict Adelie penguin",
+      "method": "POST",
+      "endpoint": "/predict",
+      "input": {
+        "island": "Torgersen",
+        "bill_length_mm": 39.1,
+        "bill_depth_mm": 18.7,
+        "flipper_length_mm": 181.0,
+        "body_mass_g": 3750.0,
+        "sex": "MALE"
+      },
+      "expected_status": 200,
+      "expected_response": {
+        "species": "Adelie"
+      }
+    },
+    {
+      "name": "Predict Gentoo penguin",
+      "method": "POST",
+      "endpoint": "/predict",
+      "input": {
+        "island": "Biscoe",
+        "bill_length_mm": 48.7,
+        "bill_depth_mm": 14.3,
+        "flipper_length_mm": 210.0,
+        "body_mass_g": 5400.0,
+        "sex": "FEMALE"
+      },
+      "expected_status": 200,
+      "expected_response": {
+        "species": "Gentoo"
+      }
+    },
+    {
+      "name": "Predict Chinstrap penguin",
+      "method": "POST",
+      "endpoint": "/predict",
+      "input": {
+        "island": "Dream",
+        "bill_length_mm": 46.5,
+        "bill_depth_mm": 17.9,
+        "flipper_length_mm": 192.0,
+        "body_mass_g": 3500.0,
+        "sex": "FEMALE"
+      },
+      "expected_status": 200,
+      "expected_response": {
+        "species": "Chinstrap"
+      }
+    },
+    {
+      "name": "Invalid request - missing fields",
+      "method": "POST",
+      "endpoint": "/predict",
+      "input": {
+        "island": "Torgersen"
+      },
+      "expected_status": 422
+    }
+  ]
+}
